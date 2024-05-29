@@ -8,12 +8,12 @@ import ProfileDrop from "./ProfileDrop";
 export default function Navbar() {
   const isLogin = true;
   return (
-    <nav className="fixed inset-x-0 top-0 z-50 shadow-sm bg-black h-16 flex justify-center items-center">
-      <div className="w-full max-w-7xl mx-auto px-8">
-        <div className="flex justify-between h-14 items-center">
+    <nav className="max-w-screen-xl mx-auto fixed inset-x-0 top-0 z-50 shadow-sm bg-black h-16 flex justify-center items-center">
+      <div className="w-full mx-auto sm:px-8">
+        <div className="flex justify-evenly sm:justify-between h-14 items-center">
           <Link className="flex items-center" href="/">
-            <MountainIcon className="h-6 w-6 mr-2" />
-            Gamba
+            <MountainIcon className="h-6 w-6 mx-1 sm:mx-0 sm:mr-2" />
+            <span className="hidden sm:block">Gamba</span>
           </Link>
           {isLogin && (
             <>

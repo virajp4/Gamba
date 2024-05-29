@@ -2,7 +2,7 @@ import { Wallet } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
 import BalanceDrop from "./BalanceDrop";
-import WalletDialog from "./WalletDialog";
+import WalletDialog from "../dialogs/WalletDialog";
 
 export default function BalanceBox() {
   return (

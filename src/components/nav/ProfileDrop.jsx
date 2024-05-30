@@ -3,12 +3,17 @@ import { useState } from "react";
 import { User, Wallet, Vault, Trophy, LineChart, ReceiptText, LogOut, Settings } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog } from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
+import useAuthStore from "@/stores/useAuthStore";
 
+import { supabase } from "@/lib/supabase";
 import WalletDialog from "../dialogs/WalletDialog";
 import VipDialog from "../dialogs/VipDialog";
 
 export default function ProfileDrop() {
   const [openDialog, setOpenDialog] = useState("");
+  const router = useRouter();
+  const setSession = useAuthStore((state) => state.setSession);
 
   function changeDialog(dialog) {
     setOpenDialog(dialog);
@@ -16,6 +21,12 @@ export default function ProfileDrop() {
 
   function closeDialog() {
     setOpenDialog("");
+  }
+
+  async function handleLogOut() {
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error("Sign out error", error.message);
+    setSession(null);
   }
 
   return (
@@ -53,7 +64,7 @@ export default function ProfileDrop() {
               <Settings size={16} className="mr-2 h-4 w-4" />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuItem className={"flex justify-start items-center cursor-pointer"}>
+            <DropdownMenuItem className={"flex justify-start items-center cursor-pointer"} onClick={handleLogOut}>
               <LogOut size={16} className="mr-2 h-4 w-4" />
               Logout
             </DropdownMenuItem>

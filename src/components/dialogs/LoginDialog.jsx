@@ -7,8 +7,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/lib/supabase";
+
 import useAuthStore from "@/stores/useAuthStore";
+import { getEmail } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 
 const formSchema = z.object({
   username: z.string().min(3),
@@ -19,26 +21,10 @@ export default function LoginDialog() {
   const form = useForm({ resolver: zodResolver(formSchema), defaultValues: { username: "", password: "" } });
   const setSession = useAuthStore((state) => state.setSession);
 
- async function getEmailFromUsername(username) {
-   const { data, error } = await supabase.rpc("get_email_from_username", { username });
-
-   if (error) {
-     console.error("Error retrieving email:", error);
-     return null;
-   }
-   return data;
- }
-
   async function handleOnSubmit(values) {
     const { username, password } = values;
 
-    const email = await getEmailFromUsername(username);
-    console.log("email", email);
-
-    if (!email) {
-      console.error("Email not found for username:", username);
-      return;
-    }
+    const email = await getEmail(username);
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
@@ -47,7 +33,6 @@ export default function LoginDialog() {
     } else {
       const session = data.session;
       setSession(session);
-      router.refresh();
     }
   }
 

@@ -1,18 +1,15 @@
-"use client";
 import { useState } from "react";
 import { User, Wallet, Vault, Trophy, LineChart, ReceiptText, LogOut, Settings } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog } from "@/components/ui/dialog";
-import { useRouter } from "next/navigation";
-import useAuthStore from "@/stores/useAuthStore";
 
 import { supabase } from "@/lib/supabase";
+import useAuthStore from "@/stores/useAuthStore";
 import WalletDialog from "../dialogs/WalletDialog";
 import VipDialog from "../dialogs/VipDialog";
 
 export default function ProfileDrop() {
   const [openDialog, setOpenDialog] = useState("");
-  const router = useRouter();
   const setSession = useAuthStore((state) => state.setSession);
 
   function changeDialog(dialog) {

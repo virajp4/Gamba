@@ -1,32 +1,16 @@
-import { MoveRight } from "lucide-react";
 import Link from "next/link";
 
-import { supabase } from "@/lib/supabase";
-import { Progress } from "@/components/ui/progress";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import VipDialog from "@/components/dialogs/VipDialog";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-export default async function Home() {
+import Header from "@/components/home/Header";
+
+export default function Home() {
   return (
     <div className="h-fit">
       <div className="h-64 flex items-center justify-center">
         <div className="md:w-1/2">
-          <div className="flex flex-col gap-3">
-            <h1 className="text-2xl font-bold">Welcome back, Choges</h1>
-            <Dialog>
-              <div className="flex items-center justify-between gap-2">
-                <DialogTrigger className={"flex items-center justify-start gap-2 hover:translate-x-3 transition-all ease-in-out group"}>
-                  <p className="text-sm sm:text-md">View VIP Progress</p>
-                  <MoveRight className="opacity-75 group-hover:opacity-100 scale-75 sm:scale-100" />
-                </DialogTrigger>
-                <span>69.46%</span>
-              </div>
-              <VipDialog />
-            </Dialog>
-            <Progress value={69.46} />
-          </div>
+          <Header />
         </div>
       </div>
 

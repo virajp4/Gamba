@@ -4,11 +4,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 
-import { supabase } from "@/lib/supabase";
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+
+import { supabase } from "@/lib/supabase";
 import useAuthStore from "@/stores/useAuthStore";
 import { createUser } from "@/lib/db";
 
@@ -35,6 +36,7 @@ export default function SignupDialog() {
       const { id, email } = data.user;
       const { username } = data.user.user_metadata;
       await createUser(id, email, username);
+      router.push("/");
     }
   }
 

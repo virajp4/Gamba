@@ -1,4 +1,3 @@
-import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import useAuthStore from "@/stores/useAuthStore";
 import { getEmail } from "@/lib/db";

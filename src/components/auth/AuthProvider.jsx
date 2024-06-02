@@ -15,7 +15,7 @@ export default function AuthProvider({ children }) {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [fetchSession]);
+  }, [fetchSession, setSession]);
 
   return <>{children}</>;
 }

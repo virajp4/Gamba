@@ -1,47 +1,51 @@
 "use client";
-import { MoveRight, LogIn, UserPlus } from "lucide-react";
 import { useState, useEffect } from "react";
 
-import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import VipDialog from "@/components/dialogs/VipDialog";
-import { Button } from "@/components/ui/button";
-import LoginDialog from "../dialogs/LoginDialog";
-import SignupDialog from "../dialogs/SignupDialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import useAuthStore from "@/stores/useAuthStore";
+import LoginDialog from "../dialogs/LoginDialog";
+import SignupDialog from "../dialogs/SignupDialog";
+import VipProgressBar from "./VipProgressBar";
 
 export default function Header() {
-  const [user, setUser] = useState(null);
-  const data = useAuthStore((state) => state.user);
+  const [isLoading, setIsLoading] = useState(true);
+  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
-    if (data) {
-      setUser(data.user_metadata.username);
-    } else {
-      setUser(null);
-    }
-  }, [data]);
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+  }, [user]);
 
   return (
     <div className="flex flex-col gap-3">
-      {user && (
-        <>
-          <h1 className="text-2xl font-bold">Welcome back, {user}</h1>
-          <Dialog>
-            <div className="flex items-center justify-between gap-2">
-              <DialogTrigger className={"flex items-center justify-start gap-2 hover:translate-x-3 transition-all ease-in-out group"}>
-                <p className="text-sm sm:text-md">View VIP Progress</p>
-                <MoveRight className="opacity-75 group-hover:opacity-100 scale-75 sm:scale-100" />
-              </DialogTrigger>
-              <span>69.46%</span>
+      {isLoading ? (
+        user ? (
+          <>
+            <Skeleton className="h-9 w-64 rounded-md" />
+            <div className="flex justify-between items-center">
+              <Skeleton className="h-4 w-36 rounded-md" />
             </div>
-            <VipDialog />
-          </Dialog>
-          <Progress value={69.46} />
-        </>
-      )}
-      {!user && (
+            <Skeleton className="h-4 w-full rounded-xl" />
+          </>
+        ) : (
+          <>
+            <div className="flex flex-col justify-center items-center gap-2">
+              <Skeleton className="h-7 w-52 rounded-md" />
+              <Skeleton className="h-4 w-56 rounded-md" />
+            </div>
+            <div className="flex gap-3 justify-center items-center">
+              <Skeleton className="h-8 w-16 rounded-md" />
+              <Skeleton className="h-8 w-16 rounded-md" />
+            </div>
+          </>
+        )
+      ) : user ? (
+        <VipProgressBar user={user} />
+      ) : (
         <>
           <div>
             <h1 className="text-2xl font-bold text-center">Welcome to Gamba</h1>

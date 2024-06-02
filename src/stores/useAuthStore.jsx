@@ -1,12 +1,14 @@
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase";
+import { fetchUser } from "@/lib/db";
 
 const useAuthStore = create((set) => ({
   session: null,
   user: null,
-  setSession: (session) => {
+  setSession: async (session) => {
     if (session) {
-      const user = session.user;
+      const { username } = session.user.user_metadata;
+      const user = await fetchUser(username);
       set({ session, user });
     } else {
       set({ session: null, user: null });
@@ -16,7 +18,8 @@ const useAuthStore = create((set) => ({
     const { data } = await supabase.auth.getSession();
     if (data.session) {
       const { session } = data;
-      const { user } = data.session;
+      const { username } = session.user.user_metadata;
+      const user = await fetchUser(username);
       set({ session, user });
     } else {
       set({ session: null, user: null });

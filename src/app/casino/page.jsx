@@ -1,4 +1,8 @@
+"use client";
+import AuthProtectedRoute from "@/components/auth/AuthProtectedRoute";
 
-export default async function CasinoPage() {
+function CasinoPage() {
   return <div>page</div>;
 }
+
+export default AuthProtectedRoute(CasinoPage);

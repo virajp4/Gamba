@@ -1,8 +1,11 @@
 "use client";
-import Link from "next/link";
+import { useState, useEffect } from "react";
 import { LogIn, UserPlus } from "lucide-react";
+import Link from "next/link";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+
 import BalanceBox from "./BalanceBox";
 import ProfileDrop from "./ProfileDrop";
 import LoginDialog from "../dialogs/LoginDialog";
@@ -10,8 +13,19 @@ import SignupDialog from "../dialogs/SignupDialog";
 import useAuthStore from "../../stores/useAuthStore";
 
 export default function Navbar() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLogin, setIsLogin] = useState(null);
   const user = useAuthStore((state) => state.user);
-  const isLogin = user !== null;
+
+  useEffect(() => {
+    setIsLogin(null);
+    setIsLoading(true);
+    setTimeout(() => {
+      const val = user ? true : false;
+      setIsLogin(val);
+      setIsLoading(false);
+    }, 500);
+  }, [user]);
 
   return (
     <nav className="max-w-screen-xl mx-auto fixed inset-x-0 top-0 z-50 shadow-sm bg-black h-16 flex justify-center items-center">
@@ -21,13 +35,25 @@ export default function Navbar() {
             <MountainIcon className="h-6 w-6 mx-1 sm:mx-0 sm:mr-2" />
             <span className="hidden sm:block">Gamba</span>
           </Link>
+          {isLoading &&
+            (user ? (
+              <>
+                <Skeleton className="h-10 w-52 rounded-md" />
+                <Skeleton className="h-9 w-20 rounded-md" />
+              </>
+            ) : (
+              <div className="flex gap-3">
+                <Skeleton className="h-9 w-20 rounded-md" />
+                <Skeleton className="h-9 w-24 rounded-md" />
+              </div>
+            ))}
           {isLogin && (
             <>
               <BalanceBox />
               <ProfileDrop />
             </>
           )}
-          {!isLogin && (
+          {isLogin == false && (
             <div className="flex items-center gap-3">
               <Dialog>
                 <DialogTrigger

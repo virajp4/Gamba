@@ -24,7 +24,7 @@ export default function BalanceDrop() {
       await fetchWallet();
     }
     fetchData();
-  }, []);
+  }, [fetchWallet]);
 
   return (
     <DropdownMenu className={"w-fit"}>

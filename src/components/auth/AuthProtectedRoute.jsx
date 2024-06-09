@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 const AuthProtectedRoute = (WrappedComponent) => {
-  return (props) => {
+  const WithAuthProtection = (props) => {
     const router = useRouter();
     const user = useAuthStore((state) => state.user);
 
@@ -15,6 +15,7 @@ const AuthProtectedRoute = (WrappedComponent) => {
 
     return <WrappedComponent {...props} />;
   };
+  return WithAuthProtection;
 };
 
 export default AuthProtectedRoute;

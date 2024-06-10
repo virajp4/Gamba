@@ -1,3 +1,4 @@
+import { create } from "zustand";
 import { supabase } from "./supabase";
 
 async function createUser(id, email, username) {
@@ -55,4 +56,16 @@ async function updateWalletType(userId, walletType) {
   }
 }
 
-module.exports = { createUser, getEmail, fetchWallet: fetchWalletDb, fetchUser, updateWallet: updateWalletDb, updateWalletType };
+async function createDiceGame(userId, amount, payoutMultiplier, target, condition) {
+  const { data, error } = await supabase
+    .from("diceGames")
+    .insert({ diceUserId: userId, amount, payoutMultiplier, target, condition })
+    .select("result")
+    .single();
+  if (error) {
+    console.error("Error creating dice game", error);
+  }
+  return data.result;
+}
+
+module.exports = { createUser, getEmail, fetchWallet: fetchWalletDb, fetchUser, updateWallet: updateWalletDb, updateWalletType, createDiceGame };

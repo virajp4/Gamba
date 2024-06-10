@@ -1,58 +1,88 @@
 "use client";
-import { useState } from "react";
-import { RotateCcw } from "lucide-react";
+import { useState, useEffect } from "react";
 
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 
-export default function page() {
+import SideCard from "@/components/casino/dice/SideCard";
+import BottomCard from "@/components/casino/dice/BottomCard";
+import { createDiceGame } from "@/lib/db";
+import useAuthStore from "@/stores/useAuthStore";
+import useUserStore from "@/stores/useUserStore";
+import { isValid, set } from "zod";
+import { get } from "react-hook-form";
+
+export default function Dice() {
+  const { user } = useAuthStore();
+  const { getCurrentAmount, transactWallet } = useUserStore();
+  const wallet = useUserStore((state) => state.wallet);
+  const currentWalletType = useUserStore((state) => state.currentWalletType);
+
   const [gameData, setGameData] = useState({
-    amount: 10.5,
-    payoutMultiplier: 1.98,
-    target: 50.0,
+    amount: 100,
+    payoutMultiplier: 2,
+    target: 50.5,
     condition: "Over",
-    profit: 0,
-    winChance: 50.0,
-    isValid: true,
+    profit: 100,
+    winChance: 49.5,
+    isValid: false,
+    result: null,
   });
+
+  useEffect(() => {
+    async function fetchData() {
+      const balance = getCurrentAmount();
+      if (gameData.amount > balance) updateGameData({ isValid: false });
+      else updateGameData({ isValid: true });
+    }
+    fetchData();
+  }, [wallet, currentWalletType]);
 
   const updateGameData = (newData) => {
     const { amount, payoutMultiplier, target, condition } = { ...gameData, ...newData };
 
-    const winChance = condition === "Over" ? 100 - target : target;
+    const winChance = condition === "Over" ? 100.0 - target : target;
     const profit = amount * payoutMultiplier - amount;
     const newPayoutMultiplier = (99 / winChance).toFixed(4);
 
     setGameData({
       ...gameData,
       ...newData,
-      winChance,
+      winChance: winChance,
       profit: profit.toFixed(2),
       payoutMultiplier: newData.payoutMultiplier !== undefined ? payoutMultiplier : newPayoutMultiplier,
+      isValid: newData.isValid && newPayoutMultiplier >= 1.0102 && newPayoutMultiplier <= 9900,
     });
   };
 
-  const handleAmountChange = (e) => {
-    const amount = parseFloat(e.target.value);
-    updateGameData({ amount });
-  };
+  const handleAmountChange = (e, val = -1) => {
+    const balance = getCurrentAmount();
+    let amount;
+    if (val === -1) {
+      amount = parseFloat(e.target.value);
+    } else {
+      if (val === 0.5) {
+        amount = gameData.amount / 2;
+      } else {
+        amount = gameData.amount * 2;
+      }
+      amount = Math.min(amount, balance);
+    }
 
-  const changeAmount = (val) => {
-    const amount = val === 0 ? gameData.amount / 2 : gameData.amount * 2;
-    updateGameData({ amount });
+    if (amount > balance) {
+      updateGameData({ amount, isValid: false });
+    } else {
+      updateGameData({ amount, isValid: true });
+    }
   };
 
   const handleMultChange = (e) => {
     const newMultiplier = parseFloat(e.target.value);
-    const newWinChance = (99 / newMultiplier).toFixed(2);
+    const newWinChance = (99 / newMultiplier).toFixed(4);
     const newTarget = gameData.condition === "Over" ? 100 - newWinChance : newWinChance;
 
     updateGameData({
-      payoutMultiplier: newMultiplier,
-      winChance: parseFloat(newWinChance),
+      payoutMultiplier: parseFloat(newMultiplier),
+      winChance: parseFloat(newWinChance).toFixed(4),
       target: parseFloat(newTarget),
       isValid: newMultiplier >= 1.0102 && newMultiplier <= 9900,
     });
@@ -61,7 +91,10 @@ export default function page() {
   const handleTargetFlip = () => {
     const condition = gameData.condition === "Over" ? "Under" : "Over";
     const target = 100 - gameData.target;
-    updateGameData({ condition, target });
+    const winChance = gameData.condition === "Over" ? 100.0 - target : target;
+    const newPayoutMultiplier = (99 / winChance).toFixed(4);
+
+    updateGameData({ condition, target, isValid: newPayoutMultiplier >= 1.0102 && newPayoutMultiplier <= 9900 });
   };
 
   const handleWinChange = (e) => {
@@ -70,88 +103,66 @@ export default function page() {
     const newTarget = gameData.condition === "Over" ? 100 - newWinChance : newWinChance;
 
     updateGameData({
-      winChance: newWinChance,
+      winChance: parseFloat(newWinChance),
       payoutMultiplier: parseFloat(newMultiplier),
       target: parseFloat(newTarget),
       isValid: newWinChance >= 0.01 && newWinChance <= 98,
     });
   };
 
-  const changeTarget = (vals) => {
-    const target = gameData.condition === "Over" ? 100 - vals[0] : vals[0];
-    updateGameData({ target: target.toFixed(2) });
+  const changeSlider = (vals) => {
+    const target = gameData.condition === "Over" ? 100 - vals[0] : vals[0] - 0.0;
+    const winChance = gameData.condition === "Over" ? 100.0 - target : target;
+    const newPayoutMultiplier = (99 / winChance).toFixed(4);
+
+    if (newPayoutMultiplier >= 1.0102 && newPayoutMultiplier <= 9900) {
+      updateGameData({ target });
+    }
+  };
+
+  const handlePlayDice = async () => {
+    const balance = getCurrentAmount();
+    if (gameData.amount > balance) {
+      setGameData({ isValid: false });
+      return;
+    }
+    const userId = user?.userId;
+    const result = await createDiceGame(userId, gameData.amount, gameData.payoutMultiplier, gameData.target, gameData.condition);
+    if (gameData.condition === "Over") {
+      if (result >= gameData.target) transactWallet(gameData.profit);
+      else transactWallet(-gameData.amount);
+    } else {
+      if (result <= gameData.target) transactWallet(gameData.profit);
+      else transactWallet(-gameData.amount);
+    }
+    updateGameData({ result });
   };
 
   return (
     <div className="m-5">
       <div className="h-[80vh] flex justify-center items-center flex-col md:flex-row gap-4">
-        <div className="h-full min-w-[240px] md:w-1/4 order-2 md:order-1 bg-zinc-950 rounded-l-xl">
-          <Tabs defaultValue="manual" className="flex justify-center items-center flex-col p-3 gap-3">
-            <TabsList>
-              <TabsTrigger value="manual">Manual</TabsTrigger>
-              <TabsTrigger value="auto">Automatic</TabsTrigger>
-            </TabsList>
-            <TabsContent value="manual">
-              <div className="grid items-center gap-5">
-                <div className="flex gap-2 flex-col">
-                  <Label htmlFor="amount">Bet Amount ($) </Label>
-                  <div className="flex items-center space-x-0.5">
-                    <Input
-                      type="number"
-                      step="0.01"
-                      id="amount"
-                      name="amount"
-                      min={0.0}
-                      value={parseFloat(gameData["amount"])}
-                      onChange={handleAmountChange}
-                    />
-                    <Button variant="outline" onClick={() => changeAmount(0)}>
-                      ½
-                    </Button>
-                    <Button variant="outline" onClick={() => changeAmount(2)}>
-                      2x
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex gap-2 flex-col">
-                  <Label>Profit on Win ($) </Label>
-                  <Input type="number" id="profit" name="profit" value={gameData["profit"]} placeholder="0.00" disabled />
-                </div>
-                <Button disabled={!gameData.isValid}>Bet</Button>
-              </div>
-            </TabsContent>
-          </Tabs>
+        <div className="md:h-full min-w-[240px] md:w-1/4 order-2 md:order-1 bg-zinc-950 rounded-l-xl">
+          <SideCard gameData={gameData} onAmountChange={handleAmountChange} onPlayDice={handlePlayDice} />
         </div>
         <div className="h-3/4 md:h-full w-full md:w-3/4 order-1 md:order-2">
           <div className="h-3/4 flex flex-col justify-center items-center">
-            <Slider value={[gameData.winChance]} max={99.99} min={2} step={1} onValueChange={changeTarget} inverted={gameData.condition === "Over"} />
+            <Slider
+              value={[gameData.winChance]}
+              max={99.99}
+              min={2.0}
+              step={1}
+              onValueChange={changeSlider}
+              inverted={gameData.condition === "Over"}
+              markerValue={gameData.result}
+            />
           </div>
           <div className="h-1/4 flex items-center justify-center">
-            <div className="grid grid-cols-3 gap-2">
-              <div className="flex gap-2 flex-col">
-                <Label htmlFor="mult">Multiplier</Label>
-                <Input
-                  type="number"
-                  step="0.0001"
-                  id="payoutMultiplier"
-                  name="payoutMultiplier"
-                  placeholder="0.00"
-                  value={gameData["payoutMultiplier"]}
-                  onChange={handleMultChange}
-                />
-              </div>
-              <div className="flex gap-2 flex-col">
-                <Label htmlFor="target">Roll {gameData.condition}</Label>
-                <Button variant="outline" onClick={handleTargetFlip} className="p-3 flex justify-between items-center">
-                  {gameData["target"]}
-                  <RotateCcw />
-                </Button>
-              </div>
-              <div className="flex gap-2 flex-col">
-                <Label htmlFor="win">Win Chance</Label>
-                <Input type="number" step="0.01" id="winChance" name="winChance" value={gameData["winChance"]} onChange={handleWinChange} />
-              </div>
-            </div>
+            <BottomCard
+              gameData={gameData}
+              handleMultChange={handleMultChange}
+              handleTargetFlip={handleTargetFlip}
+              handleWinChange={handleWinChange}
+            />
           </div>
         </div>
       </div>

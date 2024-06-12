@@ -123,7 +123,7 @@ export default function Dice() {
   const handlePlayDice = async () => {
     const balance = getCurrentAmount();
     if (gameData.amount > balance) {
-      setGameData({ isValid: false });
+      updateGameData({ isValid: false });
       return;
     }
     const userId = user?.userId;

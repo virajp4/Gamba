@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { fetchWallet, updateWallet, updateWalletType } from "@/lib/db";
+import { fetchWallet, updateWallet, updateWalletType, getDailyDepositLimit, updateDailyDepositLimit } from "@/lib/db";
 
 import useAuthStore from "@/stores/useAuthStore";
 
@@ -25,13 +25,21 @@ const useUserStore = create((set) => ({
     await updateWalletType(useAuthStore.getState().user.userId, type);
     set({ currentWalletType: type });
   },
-  transactWallet: async (amount) => {
+  transactWallet: async (amount, type = "transaction") => {
+    if (type === "deposit") {
+      const limit = await getDailyDepositLimit(useAuthStore.getState().user.userAuthId);
+      if (amount <= limit) {
+        await updateDailyDepositLimit(useAuthStore.getState().user.userId, limit - amount);
+      } else {
+        return;
+      }
+    }
     let wallet = { ...useUserStore.getState().wallet };
     for (let key in wallet) {
       wallet[key] = parseFloat(wallet[key]);
     }
-    const type = useUserStore.getState().currentWalletType;
-    wallet[type] += parseFloat(amount);
+    const walletType = useUserStore.getState().currentWalletType;
+    wallet[walletType] += parseFloat(amount);
     const updatedWallet = roundedWallet(wallet);
     await updateWallet(useAuthStore.getState().user.userId, updatedWallet);
     set({ wallet: updatedWallet });

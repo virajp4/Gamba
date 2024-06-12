@@ -1,4 +1,3 @@
-import { create } from "zustand";
 import { supabase } from "./supabase";
 
 async function createUser(id, email, username) {
@@ -68,4 +67,37 @@ async function createDiceGame(userId, amount, payoutMultiplier, target, conditio
   return data.result;
 }
 
-module.exports = { createUser, getEmail, fetchWallet: fetchWalletDb, fetchUser, updateWallet: updateWalletDb, updateWalletType, createDiceGame };
+async function getDailyDepositLimit(authId) {
+  const { data, error } = await supabase.from("users").select("dailyDepositLimit").eq("userAuthId", authId).single();
+  if (error) {
+    console.error("Error getting daily deposit limit", error);
+  }
+  return data.dailyDepositLimit;
+}
+
+async function updateDailyDepositLimit(userId, dailyDepositLimit) {
+  const { data, error } = await supabase.from("users").update({ dailyDepositLimit }).eq("userId", userId);
+  if (error) {
+    console.error("Error updating daily deposit limit", error);
+  }
+}
+
+async function updateLastDepositTime(userId) {
+  const { data, error } = await supabase.from("users").update({ lastDepositLimitResetTime: new Date() }).eq("userId", userId);
+  if (error) {
+    console.error("Error updating last deposit time", error);
+  }
+}
+
+module.exports = {
+  createUser,
+  getEmail,
+  fetchWallet: fetchWalletDb,
+  fetchUser,
+  updateWallet: updateWalletDb,
+  updateWalletType,
+  createDiceGame,
+  getDailyDepositLimit,
+  updateDailyDepositLimit,
+  updateLastDepositTime,
+};

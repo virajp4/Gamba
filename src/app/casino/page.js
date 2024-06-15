@@ -1,6 +1,3 @@
-"use client";
-
-import AuthProtectedRoute from "@/components/auth/AuthProtectedRoute";
 import GameCards from "@/components/casino/GameCards";
 
 const games = [
@@ -26,7 +23,7 @@ const games = [
   },
 ];
 
-function CasinoPage() {
+export default function Casino() {
   return (
     <div className="flex flex-col gap-10">
       <div className="flex justify-center items-center flex-col h-32 gap-3">
@@ -43,5 +40,3 @@ function CasinoPage() {
     </div>
   );
 }
-
-export default AuthProtectedRoute(CasinoPage);

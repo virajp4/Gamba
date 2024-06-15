@@ -32,10 +32,10 @@ export default function SignupDialog() {
       console.error(error);
     } else {
       const session = data.session;
-      setSession(session);
       const { id, email } = data.user;
       const { username } = data.user.user_metadata;
       await createUser(id, email, username);
+      setSession(session);
       router.push("/");
     }
   }

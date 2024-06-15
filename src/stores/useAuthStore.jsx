@@ -16,7 +16,7 @@ const useAuthStore = create((set) => ({
   },
   fetchSession: async () => {
     const { data } = await supabase.auth.getSession();
-    if (data.session) {
+    if (data && data.session) {
       const { session } = data;
       const { username } = session.user.user_metadata;
       const user = await fetchUser(username);

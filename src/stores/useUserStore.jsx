@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { fetchWallet, updateWallet, updateWalletType, getDailyDepositLimit, updateDailyDepositLimit } from "@/lib/db";
+import { fetchWallet, updateWallet, updateWalletType, getDailyDepositLimit, updateDailyDepositLimit, updateLastDepositTime } from "@/lib/db";
 
 import useAuthStore from "@/stores/useAuthStore";
 
@@ -29,7 +29,7 @@ const useUserStore = create((set) => ({
     if (type === "deposit") {
       const limit = await getDailyDepositLimit(useAuthStore.getState().user.userAuthId);
       if (amount <= limit) {
-        await updateDailyDepositLimit(useAuthStore.getState().user.userId, limit - amount);
+        await updateDailyDepositLimit(useAuthStore.getState().user.userAuthId, limit - amount);
       } else {
         return;
       }

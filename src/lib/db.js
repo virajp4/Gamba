@@ -4,11 +4,14 @@ async function createUser(id, email, username) {
   const { data: walletData } = await supabase.from("wallets").insert({ local: 1500, bitcoin: 500, ethereum: 250 }).select("walletId").single();
   const walletId = walletData.walletId;
 
-  const { data: userData } = await supabase
+  const { data: userData, error } = await supabase
     .from("users")
-    .upsert({ userAuthId: id, userEmail: email, userUsername: username, userWalletId: walletId })
+    .insert({ userAuthId: id, userEmail: email, userUsername: username, userWalletId: walletId, lastDepositLimitResetTime: new Date() })
     .select("userId")
     .single();
+  if (error) {
+    console.error("Error creating user", error);
+  }
   const userId = userData.userId;
 
   await supabase.from("wallets").update({ walletUserId: userId }).eq("walletId", walletId);
@@ -23,11 +26,11 @@ async function getEmail(username) {
 }
 
 async function fetchUser(username) {
-  const { data, error } = await supabase.from("users").select("*").eq("userUsername", username).single();
+  const { data, error } = await supabase.from("users").select("*").eq("userUsername", username);
   if (error) {
     console.error("Error getting user", error);
   }
-  return data;
+  return data[0];
 }
 
 async function fetchWalletDb(userId) {
@@ -75,15 +78,15 @@ async function getDailyDepositLimit(authId) {
   return data.dailyDepositLimit;
 }
 
-async function updateDailyDepositLimit(userId, dailyDepositLimit) {
-  const { data, error } = await supabase.from("users").update({ dailyDepositLimit }).eq("userId", userId);
+async function updateDailyDepositLimit(authId, limit) {
+  const { data, error } = await supabase.from("users").update({ dailyDepositLimit: limit }).eq("userAuthId", authId);
   if (error) {
     console.error("Error updating daily deposit limit", error);
   }
 }
 
-async function updateLastDepositTime(userId) {
-  const { data, error } = await supabase.from("users").update({ lastDepositLimitResetTime: new Date() }).eq("userId", userId);
+async function updateLastDepositTime(userId, date) {
+  const { data, error } = await supabase.from("users").update({ lastDepositLimitResetTime: date }).eq("userId", userId);
   if (error) {
     console.error("Error updating last deposit time", error);
   }

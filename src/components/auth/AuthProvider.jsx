@@ -7,6 +7,9 @@ export default function AuthProvider({ children }) {
   const setSession = useAuthStore((state) => state.setSession);
   const fetchSession = useAuthStore((state) => state.fetchSession);
 
+  async function logout() {
+    await supabase.auth.signOut();
+  }
   useEffect(() => {
     fetchSession();
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {

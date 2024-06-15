@@ -12,8 +12,10 @@ import { ChevronDown, WalletCards } from "lucide-react";
 import { useEffect } from "react";
 
 import useUserStore from "@/stores/useUserStore";
+import useAuthStore from "@/stores/useAuthStore";
 
 export default function BalanceDrop() {
+  const user = useAuthStore((state) => state.user);
   const fetchWallet = useUserStore((state) => state.fetchWallet);
   const wallet = useUserStore((state) => state.wallet);
   const currentWalletType = useUserStore((state) => state.currentWalletType);
@@ -21,9 +23,10 @@ export default function BalanceDrop() {
 
   useEffect(() => {
     async function fetchData() {
-      await fetchWallet();
+      const userId = user.userId;
+      await fetchWallet(userId);
     }
-    fetchData();
+    if (user) fetchData();
   }, [fetchWallet]);
 
   return (
@@ -35,15 +38,24 @@ export default function BalanceDrop() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className={"w-fit"}>
         <div className="flex justify-center items-center flex-col gap-2 py-1.5">
-          <DropdownMenuItem className={"w-full flex justify-between items-center px-2 text-center cursor-pointer"} onClick={() => setCurrentWalletType("local")}>
+          <DropdownMenuItem
+            className={"w-full flex justify-between items-center px-2 text-center cursor-pointer"}
+            onClick={() => setCurrentWalletType("local")}
+          >
             <span>$ {wallet.local}</span>
             <span className="w-1/4">USD</span>
           </DropdownMenuItem>
-          <DropdownMenuItem className={"w-full flex justify-between items-center px-2 text-center cursor-pointer"} onClick={() => setCurrentWalletType("bitcoin")}>
+          <DropdownMenuItem
+            className={"w-full flex justify-between items-center px-2 text-center cursor-pointer"}
+            onClick={() => setCurrentWalletType("bitcoin")}
+          >
             <span>$ {wallet.bitcoin}</span>
             <span className="w-1/4">BTC</span>
           </DropdownMenuItem>
-          <DropdownMenuItem className={"w-full flex justify-between items-center px-2 text-center cursor-pointer"} onClick={() => setCurrentWalletType("ethereum")}>
+          <DropdownMenuItem
+            className={"w-full flex justify-between items-center px-2 text-center cursor-pointer"}
+            onClick={() => setCurrentWalletType("ethereum")}
+          >
             <span>$ {wallet.ethereum}</span>
             <span className="w-1/4">ETH</span>
           </DropdownMenuItem>

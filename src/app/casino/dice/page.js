@@ -8,8 +8,6 @@ import BottomCard from "@/components/casino/dice/BottomCard";
 import { createDiceGame } from "@/lib/db";
 import useAuthStore from "@/stores/useAuthStore";
 import useUserStore from "@/stores/useUserStore";
-import { isValid, set } from "zod";
-import { get } from "react-hook-form";
 
 export default function Dice() {
   const { user } = useAuthStore();

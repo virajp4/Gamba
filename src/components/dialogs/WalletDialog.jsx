@@ -6,37 +6,41 @@ import { Button } from "@/components/ui/button";
 
 import useUserStore from "@/stores/useUserStore";
 import useAuthStore from "@/stores/useAuthStore";
-import { getDailyDepositLimit, updateDailyDepositLimit, updateLastDepositTime } from "@/lib/db";
+import { updateLastDepositTime, getLastDepositTime, updateDailyDepositLimit, getDailyDepositLimit } from "@/lib/db";
 
 export default function WalletDialog() {
   const wallet = useUserStore((state) => state.wallet);
   const transactWallet = useUserStore((state) => state.transactWallet);
-  const session = useAuthStore((state) => state.session);
   const user = useAuthStore((state) => state.user);
 
-  const [limit, setLimit] = useState(null);
+  const [limit, setLimit] = useState(10000);
   const [countdown, setCountdown] = useState(`0h 0m`);
 
   useEffect(() => {
-    console.log(user);
+    let interval;
 
     async function fetchLimit() {
+      if (!user) return;
+
+      const lastTime = await getLastDepositTime(user.userId);
       const currentTime = new Date();
-      const lastReset = new Date(user.lastDepositLimitResetTime);
+      const lastReset = new Date(lastTime);
 
       if (currentTime - lastReset > 86400000) {
-        console.log("Resetting limit");
         await updateLastDepositTime(user.userId, currentTime);
         await updateDailyDepositLimit(user.userAuthId, 10000);
         setLimit(10000);
-        return;
+      } else {
+        const currLimit = await getDailyDepositLimit(user.userAuthId);
+        setLimit(currLimit);
       }
-      const limit = await getDailyDepositLimit(session.user.id);
-      setLimit(limit);
     }
 
-    function calculateCountdown() {
-      const nextReset = new Date(user.lastDepositLimitResetTime);
+    async function calculateCountdown() {
+      if (!user) return;
+
+      const lastTime = await getLastDepositTime(user.userId);
+      const nextReset = new Date(lastTime);
       nextReset.setDate(nextReset.getDate() + 1);
       nextReset.setHours(0, 0, 0, 0);
 
@@ -52,10 +56,14 @@ export default function WalletDialog() {
       }
     }
 
-    if (user && user.lastDepositLimitResetTime) fetchLimit();
+    if (user) {
+      fetchLimit();
+      interval = setInterval(calculateCountdown, 1000);
+    }
 
-    const interval = setInterval(calculateCountdown, 1000);
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [wallet, user]);
 
   return (

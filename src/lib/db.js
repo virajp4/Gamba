@@ -85,6 +85,14 @@ async function updateDailyDepositLimit(authId, limit) {
   }
 }
 
+async function getLastDepositTime(userId) {
+  const { data, error } = await supabase.from("users").select("lastDepositLimitResetTime").eq("userId", userId).single();
+  if (error) {
+    console.error("Error getting last deposit time", error);
+  }
+  if (data) return data.lastDepositLimitResetTime;
+}
+
 async function updateLastDepositTime(userId, date) {
   const { data, error } = await supabase.from("users").update({ lastDepositLimitResetTime: date }).eq("userId", userId);
   if (error) {
@@ -102,5 +110,6 @@ module.exports = {
   createDiceGame,
   getDailyDepositLimit,
   updateDailyDepositLimit,
+  getLastDepositTime,
   updateLastDepositTime,
 };

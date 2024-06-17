@@ -16,24 +16,32 @@ function roundedWallet(wallet) {
 const useUserStore = create((set) => ({
   wallet: {},
   currentWalletType: "local",
+
   fetchWallet: async () => {
     const wallet = await fetchWallet(useAuthStore.getState().user.userId);
     const updatedWallet = roundedWallet(wallet);
-    set({ wallet: updatedWallet, currentWalletType: wallet.walletType });
+
+    set({ wallet: updatedWallet, currentWalletType: wallet.walletType});
   },
+
   setCurrentWalletType: async (type) => {
     await updateWalletType(useAuthStore.getState().user.userId, type);
     set({ currentWalletType: type });
   },
+
   transactWallet: async (amount, type = "transaction") => {
+    const userAuthId = useAuthStore.getState().user.userAuthId;
+    const userId = useAuthStore.getState().user.userId;
+
     if (type === "deposit") {
-      const limit = await getDailyDepositLimit(useAuthStore.getState().user.userAuthId);
-      if (amount <= limit) {
-        await updateDailyDepositLimit(useAuthStore.getState().user.userAuthId, limit - amount);
+      const currLimit = await getDailyDepositLimit(userAuthId);
+      if (amount <= currLimit) {
+        await updateDailyDepositLimit(userAuthId, currLimit - amount);
       } else {
         return;
       }
     }
+
     let wallet = { ...useUserStore.getState().wallet };
     for (let key in wallet) {
       wallet[key] = parseFloat(wallet[key]);
@@ -41,9 +49,11 @@ const useUserStore = create((set) => ({
     const walletType = useUserStore.getState().currentWalletType;
     wallet[walletType] += parseFloat(amount);
     const updatedWallet = roundedWallet(wallet);
-    await updateWallet(useAuthStore.getState().user.userId, updatedWallet);
+
+    await updateWallet(userId, updatedWallet);
     set({ wallet: updatedWallet });
   },
+
   getCurrentAmount: () => {
     const type = useUserStore.getState().currentWalletType;
     return useUserStore.getState().wallet[type];

@@ -16,12 +16,17 @@ function roundedWallet(wallet) {
 const useUserStore = create((set) => ({
   wallet: {},
   currentWalletType: "local",
+  lastDepositTime: null,
+
+  setLastDepositTime: async (date) => {
+    set({ lastDepositTime: date });
+  },
 
   fetchWallet: async () => {
     const wallet = await fetchWallet(useAuthStore.getState().user.userId);
     const updatedWallet = roundedWallet(wallet);
 
-    set({ wallet: updatedWallet, currentWalletType: wallet.walletType});
+    set({ wallet: updatedWallet, currentWalletType: wallet.walletType });
   },
 
   setCurrentWalletType: async (type) => {

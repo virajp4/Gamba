@@ -7,6 +7,11 @@ const games = [
     link: "/casino/dice",
   },
   {
+    title: "Mines",
+    description: "Don't step on the mines. Or do. I'm not your mom.",
+    link: "/casino/mines",
+  },
+  {
     title: "Plinko",
     description: "Go wild and let the balls loose.",
     link: "/casino/plinko",
@@ -15,11 +20,6 @@ const games = [
     title: "Crash",
     description: "How long can you wait before you cash out?",
     link: "/casino/crash",
-  },
-  {
-    title: "Limbo",
-    description: "Predict the multiplier and pray to the Gamba Gods.",
-    link: "/casino/limbo",
   },
 ];
 

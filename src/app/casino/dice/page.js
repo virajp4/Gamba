@@ -5,22 +5,25 @@ import { Slider } from "@/components/ui/slider";
 
 import SideCard from "@/components/casino/dice/SideCard";
 import BottomCard from "@/components/casino/dice/BottomCard";
-import { createDiceGame } from "@/lib/db";
+
+import { createDiceGame, fetchWallet } from "@/lib/db";
 import useAuthStore from "@/stores/useAuthStore";
 import useUserStore from "@/stores/useUserStore";
 
 export default function Dice() {
-  const { user } = useAuthStore();
-  const { getCurrentAmount, transactWallet } = useUserStore();
+  const user = useAuthStore((state) => state.user);
+  const session = useAuthStore((state) => state.session);
+  const getCurrentAmount = useUserStore((state) => state.getCurrentAmount);
   const wallet = useUserStore((state) => state.wallet);
   const currentWalletType = useUserStore((state) => state.currentWalletType);
+  const transactWallet = useUserStore((state) => state.transactWallet);
 
   const [gameData, setGameData] = useState({
-    amount: 100,
+    amount: 0,
     payoutMultiplier: 2,
     target: 50.5,
     condition: "Over",
-    profit: 100,
+    profit: 0,
     winChance: 49.5,
     isValid: false,
     result: null,
@@ -54,7 +57,7 @@ export default function Dice() {
 
   const handleAmountChange = (e, val = -1) => {
     const balance = getCurrentAmount();
-    let amount;
+    let amount = 0;
     if (val === -1) {
       amount = parseFloat(e.target.value);
     } else {
@@ -125,15 +128,30 @@ export default function Dice() {
       return;
     }
     const userId = user?.userId;
-    const result = await createDiceGame(userId, gameData.amount, gameData.payoutMultiplier, gameData.target, gameData.condition);
-    if (gameData.condition === "Over") {
-      if (result >= gameData.target) transactWallet(gameData.profit);
-      else transactWallet(-gameData.amount);
+    const response = await fetch("/api/dice", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        amount: gameData.amount,
+        payoutMultiplier: gameData.payoutMultiplier,
+        target: gameData.target,
+        condition: gameData.condition,
+        userId,
+      }),
+    });
+    const data = await response.json();
+    const isWin = data.isWin;
+
+    if (isWin) {
+      transactWallet(gameData.profit);
     } else {
-      if (result <= gameData.target) transactWallet(gameData.profit);
-      else transactWallet(-gameData.amount);
+      transactWallet(-gameData.amount);
     }
-    updateGameData({ result });
+
+    updateGameData({ result: data.result });
   };
 
   return (

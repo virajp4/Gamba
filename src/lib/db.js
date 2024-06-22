@@ -6,7 +6,7 @@ async function createUser(id, email, username) {
 
   const { data: userData, error } = await supabase
     .from("users")
-    .insert({ userAuthId: id, userEmail: email, userUsername: username, userWalletId: walletId, lastDepositLimitResetTime: new Date() })
+    .insert({ userAuthId: id, userEmail: email, userUsername: username, userWalletId: walletId })
     .select("userId")
     .single();
   if (error) {
@@ -58,18 +58,6 @@ async function updateWalletType(userId, walletType) {
   }
 }
 
-async function createDiceGame(userId, amount, payoutMultiplier, target, condition, result) {
-  const { data, error } = await supabase
-    .from("diceGames")
-    .insert({ diceUserId: userId, amount, payoutMultiplier, target, condition, result })
-    .select("result")
-    .single();
-  if (error) {
-    console.error("Error creating dice game", error);
-  }
-  return data.result;
-}
-
 async function getDailyDepositLimit(authId) {
   const { data, error } = await supabase.from("users").select("dailyDepositLimit").eq("userAuthId", authId).single();
   if (error) {
@@ -92,7 +80,6 @@ module.exports = {
   fetchUser,
   updateWallet: updateWalletDb,
   updateWalletType,
-  createDiceGame,
   getDailyDepositLimit,
   updateDailyDepositLimit,
 };

@@ -1,6 +1,19 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
+function generateMines(minesCount) {
+  const mines = [];
+  for (let i = 0; i < minesCount; i++) {
+    let num = Math.floor(Math.random() * 25) + 1;
+    if (mines.includes(num)) {
+      i--;
+      continue;
+    }
+    mines.push(num);
+  }
+  return mines;
+}
+
 export async function POST(request) {
   const authHeader = await request.headers.get("Authorization");
   if (!authHeader) {
@@ -16,26 +29,16 @@ export async function POST(request) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  let { amount, payoutMultiplier, target, condition, userId } = await request.json();
+  const { amount, minesCount, userId } = await request.json();
+  const mines = generateMines(minesCount);
 
   try {
-    const result = (Math.random() * 100).toFixed(2);
-    const { error } = await supabase
-      .from("diceGames")
-      .insert({ diceUserId: userId, amount, payoutMultiplier, target, condition, result })
-      .select("result")
+    const { data } = await supabase
+      .from("mineGames")
+      .insert([{ amount, minesCount, minesUserId: userId, mines }])
+      .select("*")
       .single();
-
-    if (error) {
-      console.error("Error creating dice game", error);
-    }
-
-    let isWin = false;
-
-    if (condition === "Over" && result >= target) isWin = true;
-    else if (condition === "Under" && result <= target) isWin = true;
-
-    return NextResponse.json({ result, isWin });
+    return NextResponse.json(data["minesId"]);
   } catch (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }

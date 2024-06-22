@@ -18,7 +18,7 @@ export default function WalletDialog() {
 
   useEffect(() => {
     let interval;
-    
+
     async function fetchLimit() {
       if (!user) return;
       const currLimit = await getDailyDepositLimit(user.userAuthId);
@@ -55,13 +55,12 @@ export default function WalletDialog() {
     };
   }, [user]);
 
-  const handleTransact = useCallback(
-    async (amount) => {
+  const handleTransact = async (amount) => {
+    if (limit - amount >= 0) {
       await transactWallet(amount, "deposit");
       setLimit((prevLimit) => prevLimit - amount);
-    },
-    [transactWallet]
-  );
+    }
+  };
 
   return (
     <>

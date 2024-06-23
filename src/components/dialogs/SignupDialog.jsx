@@ -4,10 +4,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 
-import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 
 import { supabase } from "@/lib/supabase";
 import useAuthStore from "@/stores/useAuthStore";
@@ -23,13 +24,17 @@ export default function SignupDialog() {
   const form = useForm({ resolver: zodResolver(formSchema), defaultValues: { email: "", username: "", password: "", dateOfBirth: "" } });
   const router = useRouter();
   const setSession = useAuthStore((state) => state.setSession);
+  const { toast } = useToast();
 
   async function handleOnSubmit(values) {
     const { email, username, password } = values;
     const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { username } } });
 
     if (error) {
-      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Error signing up!",
+      });
     } else {
       const session = data.session;
       const { id, email } = data.user;
@@ -44,6 +49,7 @@ export default function SignupDialog() {
     <DialogContent>
       <DialogHeader>
         <DialogTitle className={"mb-2"}>Register</DialogTitle>
+        <DialogDescription></DialogDescription>
         <div className="text-sm text-zinc-400">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleOnSubmit)} className="space-y-4">

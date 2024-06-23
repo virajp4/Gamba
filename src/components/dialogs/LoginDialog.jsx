@@ -5,11 +5,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import useAuthStore from "@/stores/useAuthStore";
 import { getEmail } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
+import { useToast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
   username: z.string().min(3),
@@ -19,16 +20,27 @@ const formSchema = z.object({
 export default function LoginDialog() {
   const form = useForm({ resolver: zodResolver(formSchema), defaultValues: { username: "", password: "" } });
   const setSession = useAuthStore((state) => state.setSession);
+  const { toast } = useToast();
 
   async function handleOnSubmit(values) {
     const { username, password } = values;
 
-    const email = await getEmail(username);
+    const { error: emailError, data: email, message } = await getEmail(username);
+    if (emailError) {
+      toast({
+        variant: "destructive",
+        title: message,
+      });
+      return;
+    }
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      console.error("Login error:", error);
+    const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+    if (loginError) {
+      toast({
+        variant: "destructive",
+        title: "Invalid credentials!",
+      });
+      return;
     } else {
       const session = data.session;
       setSession(session);
@@ -39,6 +51,7 @@ export default function LoginDialog() {
     <DialogContent>
       <DialogHeader>
         <DialogTitle className={"mb-2"}>Login</DialogTitle>
+        <DialogDescription></DialogDescription>
         <div className="text-sm text-zinc-400">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleOnSubmit)} className="space-y-4">

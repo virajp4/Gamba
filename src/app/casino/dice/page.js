@@ -6,17 +6,17 @@ import { Slider } from "@/components/ui/slider";
 import SideCard from "@/components/casino/dice/SideCard";
 import BottomCard from "@/components/casino/dice/BottomCard";
 
-import { createDiceGame, fetchWallet } from "@/lib/db";
+import useFetch from "@/lib/useFetch";
 import useAuthStore from "@/stores/useAuthStore";
 import useUserStore from "@/stores/useUserStore";
 
 export default function Dice() {
   const user = useAuthStore((state) => state.user);
-  const session = useAuthStore((state) => state.session);
   const getCurrentAmount = useUserStore((state) => state.getCurrentAmount);
   const wallet = useUserStore((state) => state.wallet);
   const currentWalletType = useUserStore((state) => state.currentWalletType);
   const transactWallet = useUserStore((state) => state.transactWallet);
+  const { fetchWithAuth, loading } = useFetch();
 
   const [gameData, setGameData] = useState({
     amount: 0,
@@ -127,13 +127,10 @@ export default function Dice() {
       updateGameData({ isValid: false });
       return;
     }
+    if (loading) return;
     const userId = user?.userId;
-    const response = await fetch("/api/dice", {
+    const data = await fetchWithAuth("/api/dice", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
-      },
       body: JSON.stringify({
         amount: gameData.amount,
         payoutMultiplier: gameData.payoutMultiplier,
@@ -142,7 +139,6 @@ export default function Dice() {
         userId,
       }),
     });
-    const data = await response.json();
     const isWin = data.isWin;
 
     if (isWin) {

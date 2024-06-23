@@ -20,9 +20,9 @@ async function createUser(id, email, username) {
 async function getEmail(username) {
   const { data, error } = await supabase.from("users").select("userEmail").eq("userUsername", username).single();
   if (error) {
-    console.error("Error getting email", error);
+    return { error: true, message: "User does not exist. Please create an account.", data: null };
   }
-  return data.userEmail;
+  return { error: false, message: "Email retrieved", data: data.userEmail };
 }
 
 async function fetchUser(username) {

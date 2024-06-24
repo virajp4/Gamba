@@ -71,14 +71,14 @@ export async function POST(request, { params }) {
   }
 
   const minesId = params.minesId;
-  const { amount, minesCount, value } = await request.json();
+  const { value } = await request.json();
 
-  const { data, error: minesError } = await supabase.from("mineGames").select("mines, rounds").eq("minesId", minesId).single();
+  const { data, error: minesError } = await supabase.from("mineGames").select("mines, rounds, amount, minesCount").eq("minesId", minesId).single();
   if (minesError) {
     return NextResponse.json({ message: minesError.message }, { status: 500 });
   }
-  const mines = data.mines;
-  const rounds = data.rounds;
+
+  const {mines, rounds, amount, minesCount} = data;
   
   if (mines.includes(value)) {
     const { error } = await supabase

@@ -12,14 +12,14 @@ const games = [
     link: "/casino/mines",
   },
   {
+    title: "Dragon Tower",
+    description: "Climb the tower and get the treasure. Or lose everything.",
+    link: "/casino/dragon",
+  },
+  {
     title: "Plinko",
     description: "Go wild and let the balls loose.",
     link: "/casino/plinko",
-  },
-  {
-    title: "Crash",
-    description: "How long can you wait before you cash out?",
-    link: "/casino/crash",
   },
 ];
 

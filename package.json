@@ -27,6 +27,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "lucide-react": "^0.379.0",
+    "matter-js": "^0.20.0",
     "nestjs-supabase-auth": "^1.0.9",
     "next": "14.2.3",
     "passport": "^0.7.0",

@@ -16,11 +16,11 @@ const games = [
     description: "Climb the tower and get the treasure. Or lose everything.",
     link: "/casino/dragon",
   },
-  {
+  /*{
     title: "Plinko",
     description: "Go wild and let the balls loose.",
     link: "/casino/plinko",
-  },
+  },*/
 ];
 
 export default function Casino() {
@@ -31,7 +31,7 @@ export default function Casino() {
         <p className="text-center">Explore a wide variety of games that you can go absolute degen mode with.</p>
       </div>
       <div className="flex items-center justify-center">
-        <div className="lg:w-[80%] md:w-[90%] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-4 md:gap-y-6">
+        <div className="lg:w-[80%] md:w-[90%] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-4 md:gap-y-6">
           {games.map((game, index) => (
             <GameCards key={index} {...game} />
           ))}

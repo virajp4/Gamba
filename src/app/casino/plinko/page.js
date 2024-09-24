@@ -1,6 +1,5 @@
 "use client";
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 
 import useFetch from "@/lib/useFetch";
@@ -25,10 +24,11 @@ export default function Plinko() {
     payoutMultiplier: 0,
     payout: 0,
     isValid: true,
-    loadingBall: null,
+    loadingBall: false,
     path: [],
     risk: "Low",
     rows: 8,
+    ballCount: 1,
   });
 
   const handleAmountChange = (e, val = -1) => {
@@ -63,28 +63,13 @@ export default function Plinko() {
 
   const playPlinko = () => {
     if (gameData.plinkoId) return;
-    if (gameData.amount === 0) return;
     if (!gameData.isValid) return;
 
-    setGameData((prev) => ({ ...prev, loadingBall: true }));
-    transactWallet(-gameData.amount);
-    fetchWithAuth("/casino/plinko", {
-      method: "POST",
-      body: JSON.stringify({
-        amount: gameData.amount,
-        risk: gameData.risk,
-        rows: gameData.rows,
-      }),
-    }).then((res) => {
-      setGameData((prev) => ({
-        ...prev,
-        plinkoId: res.plinkoId,
-        payoutMultiplier: res.payoutMultiplier,
-        payout: res.payout,
-        path: res.path,
-      }));
-      transactWallet(gameData.payout);
-    });
+    setGameData((prev) => ({ ...prev, ballCount: prev.ballCount + 1 }));
+  };
+
+  const handleBallLanded = () => {
+    setGameData((prev) => ({ ...prev, ballCount: prev.ballCount - 1 }));
   };
 
   return (
@@ -94,7 +79,7 @@ export default function Plinko() {
       </div>
 
       <div className="h-[55vh] md:h-full w-full md:w-3/4 max-w-[800px] order-1 md:order-2 sm:px-2 pt-5">
-        <PlinkoBoard rows={gameData.rows} />
+        <PlinkoBoard rows={gameData.rows} ballCount={gameData.ballCount} onBallLanded={handleBallLanded} />
       </div>
     </div>
   );

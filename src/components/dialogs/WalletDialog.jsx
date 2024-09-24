@@ -1,15 +1,14 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 import useUserStore from "@/stores/useUserStore";
 import useAuthStore from "@/stores/useAuthStore";
-import { getDailyDepositLimit } from "@/lib/db";
+import { getDailyDepositLimit, getLastDepositTime, updateDailyDepositLimit, updateLastDepositTime } from "@/lib/db";
 
 export default function WalletDialog() {
-  const wallet = useUserStore((state) => state.wallet);
   const transactWallet = useUserStore((state) => state.transactWallet);
   const user = useAuthStore((state) => state.user);
 
@@ -25,13 +24,38 @@ export default function WalletDialog() {
       setLimit(currLimit);
     }
 
-    function calculateCountdown() {
-      if (!user) return;
+    if (user) {
+      fetchLimit();
+      calculateCountdown();
+      interval = setInterval(calculateCountdown, 60000);
+    }
 
-      const currentTime = new Date();
-      const nextReset = new Date();
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [user, transactWallet]);
+
+  const handleTransact = async (amount) => {
+    if (limit - amount >= 0) {
+      await transactWallet(amount, "deposit");
+      setLimit((prevLimit) => prevLimit - amount);
+      await updateLastDepositTime(user.userAuthId);
+      calculateCountdown();
+    }
+  };
+
+  async function calculateCountdown() {
+    if (!user) return;
+
+    const lastDepositTime = await getLastDepositTime(user.userAuthId);
+    const currentTime = new Date();
+    const timeSinceLastDeposit = currentTime - new Date(lastDepositTime);
+    if (timeSinceLastDeposit >= 1000 * 60 * 60 * 24) {
+      await updateDailyDepositLimit(user.userAuthId, 10000);
+      setCountdown("Refill available");
+    } else {
+      const nextReset = new Date(lastDepositTime);
       nextReset.setDate(nextReset.getDate() + 1);
-      nextReset.setHours(0, 0, 0, 0);
 
       const timeDiff = nextReset - currentTime;
 
@@ -43,24 +67,7 @@ export default function WalletDialog() {
         setCountdown("Refill available");
       }
     }
-
-    if (user) {
-      fetchLimit();
-      calculateCountdown();
-      interval = setInterval(calculateCountdown, 60000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [user]);
-
-  const handleTransact = async (amount) => {
-    if (limit - amount >= 0) {
-      await transactWallet(amount, "deposit");
-      setLimit((prevLimit) => prevLimit - amount);
-    }
-  };
+  }
 
   return (
     <>

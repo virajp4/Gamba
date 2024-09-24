@@ -73,6 +73,21 @@ async function updateDailyDepositLimit(authId, limit) {
   }
 }
 
+async function getLastDepositTime(authId) {
+  const { data, error } = await supabase.from("users").select("lastDepositTime").eq("userAuthId", authId).single();
+  if (error) {
+    console.error("Error getting last deposit time", error);
+  }
+  return data.lastDepositTime;
+}
+
+async function updateLastDepositTime(authId) {
+  const { data, error } = await supabase.from("users").update({ lastDepositTime: new Date() }).eq("userAuthId", authId);
+  if (error) {
+    console.error("Error updating last deposit time", error);
+  }
+}
+
 module.exports = {
   createUser,
   getEmail,
@@ -82,4 +97,6 @@ module.exports = {
   updateWalletType,
   getDailyDepositLimit,
   updateDailyDepositLimit,
+  getLastDepositTime,
+  updateLastDepositTime,
 };
